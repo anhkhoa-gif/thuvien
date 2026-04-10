@@ -33,14 +33,15 @@ namespace LibaryManagement
             app.UseSwagger();
             app.UseSwaggerUI();
 
-            app.UseHttpsRedirection();
+
 
             app.UseAuthorization();
 
 
             app.MapControllers();
 
-            app.Urls.Add("http://0.0.0.0:10000");
+            var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
+            app.Urls.Add($"http://0.0.0.0:{port}");
 
             app.Run();
         }
