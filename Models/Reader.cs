@@ -5,7 +5,8 @@ namespace LibaryManagement.Models
         public int Id { get; set; }
         
         public int UserId { get; set; }
-        public virtual User User { get; set; } = null!;
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public virtual User? User { get; set; }
 
         public int MaxBooks { get; set; }
 

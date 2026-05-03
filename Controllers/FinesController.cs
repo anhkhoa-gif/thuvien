@@ -19,7 +19,11 @@ namespace LibaryManagement.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Fine>>> GetFines()
         {
-            return await _context.Fines.ToListAsync();
+            return await _context.Fines
+                .Include(f => f.Borrow)
+                    .ThenInclude(b => b.Reader)
+                        .ThenInclude(r => r.User)
+                .ToListAsync();
         }
 
         [HttpGet("{id}")]

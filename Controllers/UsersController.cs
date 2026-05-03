@@ -33,9 +33,33 @@ namespace LibaryManagement.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user)
         {
+            // Simple check for existing username
+            if (await _context.Users.AnyAsync(u => u.Username == user.Username))
+            {
+                return BadRequest("Username already exists.");
+            }
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<User>> Login([FromBody] LoginRequest login)
+        {
+            var user = await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => 
+                    (u.Username.ToLower() == login.Username.ToLower() || u.Email.ToLower() == login.Username.ToLower()) 
+                    && u.PasswordHash == login.Password);
+
+            if (user == null)
+            {
+                return Unauthorized("Invalid username or password.");
+            }
+
+            return Ok(user);
         }
 
         [HttpPut("{id}")]
@@ -63,5 +87,11 @@ namespace LibaryManagement.Controllers
         }
 
         private bool UserExists(int id) => _context.Users.Any(e => e.Id == id);
+    }
+
+    public class LoginRequest
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
     }
 }

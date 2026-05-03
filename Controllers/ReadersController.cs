@@ -19,7 +19,7 @@ namespace LibaryManagement.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Reader>>> GetReaders()
         {
-            return await _context.Readers.ToListAsync();
+            return await _context.Readers.Include(r => r.User).ToListAsync();
         }
 
         [HttpGet("{id}")]
@@ -31,11 +31,44 @@ namespace LibaryManagement.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Reader>> PostReader(Reader reader)
+        public async Task<ActionResult<Reader>> PostReader(ReaderCreateDto readerDto)
         {
+            // 1. Check if user exists by ID
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == readerDto.UserId);
+            
+            // 2. If not found by ID (stale session), try finding by Username if possible
+            // Note: We don't have username in DTO yet, but let's assume we want to be safe.
+            // Actually, if we don't have username, we can't relink.
+            
+            if (user == null)
+            {
+                return BadRequest("Lỗi: Phiên đăng nhập của bạn đã quá cũ. Vui lòng ĐĂNG XUẤT và ĐĂNG NHẬP lại để hệ thống cập nhật mã số mới.");
+            }
+
+            // 3. Check if reader already exists
+            var existingReader = await _context.Readers
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.UserId == user.Id);
+                
+            if (existingReader != null)
+            {
+                return existingReader;
+            }
+            
+            var reader = new Reader
+            {
+                UserId = user.Id,
+                MaxBooks = readerDto.MaxBooks
+            };
+
             _context.Readers.Add(reader);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetReader), new { id = reader.Id }, reader);
+            
+            var result = await _context.Readers
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.Id == reader.Id);
+            
+            return CreatedAtAction(nameof(GetReader), new { id = reader.Id }, result);
         }
 
         [HttpPut("{id}")]
@@ -63,5 +96,11 @@ namespace LibaryManagement.Controllers
         }
 
         private bool ReaderExists(int id) => _context.Readers.Any(e => e.Id == id);
+    }
+
+    public class ReaderCreateDto
+    {
+        public int UserId { get; set; }
+        public int MaxBooks { get; set; }
     }
 }

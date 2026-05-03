@@ -5,9 +5,9 @@ namespace LibaryManagement.Models
         public int Id { get; set; }
 
         public int BorrowId { get; set; }
-        public virtual Borrow Borrow { get; set; } = null!;
+        public virtual Borrow? Borrow { get; set; }
 
         public int BookId { get; set; }
-        public virtual Book Book { get; set; } = null!;
+        public virtual Book? Book { get; set; }
     }
 }

@@ -6,6 +6,8 @@ namespace LibaryManagement.Models
         public string Title { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
         public int Quantity { get; set; }
+        public string Category { get; set; } = "General";
+        public string? ImageUrl { get; set; }
         public BookStatus Status { get; set; }
 
         // Navigation properties

@@ -19,6 +19,7 @@ namespace LibaryManagement.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Book>>> GetBooks()
         {
+            
             return await _context.Books.ToListAsync();
         }
 
